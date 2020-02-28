@@ -18,8 +18,10 @@ RESOLUTION_LIST = ["320x200", "800x600", "1024x768", "1366x768"]
 
 
 class RPGSE(tk.Tk):
+    """RPG Super Extreme"""
 
     def __init__(self, *args, **kwargs):
+        """Initializing frame"""
 
         tk.Tk.__init__(self, *args, **kwargs)
 
@@ -35,12 +37,12 @@ class RPGSE(tk.Tk):
 
         self.frames = {}
 
-        for one_of_frames in (main_menu, new_game, load_game, statistics, options, new_hero, load_hero):  # A tuple of frames in our app, don`t forget to update if new ones, added
+        for one_of_frames in (Main_menu, New_game, Load_game, Statistics, Options, New_hero, Load_hero):  # A tuple of frames in our app, don`t forget to update if new ones, added
             frame = one_of_frames(container, self)
             self.frames[one_of_frames] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame(main_menu)
+        self.show_frame(Main_menu)
 
     def show_frame(self, container):
 
@@ -48,46 +50,45 @@ class RPGSE(tk.Tk):
         frame.tkraise()
 
 
-class main_menu(tk.Frame):
+class Main_menu(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Main Menu", font=MAIN_MENU_FONT)
         label.pack(pady=10, padx=10)
 
-        mm_new_game_button = ttk.Button(self, text="New Game", command=lambda: controller.show_frame(new_game))
+        mm_new_game_button = ttk.Button(self, text="New Game", command=lambda: controller.show_frame(New_game))
         mm_new_game_button.pack()
-        mm_load_game_button = ttk.Button(self, text="Load Game", command=lambda: controller.show_frame(load_game))
+        mm_load_game_button = ttk.Button(self, text="Load Game", command=lambda: controller.show_frame(Load_game))
         mm_load_game_button.pack()
-        mm_statistics_button = ttk.Button(self, text="Statistics", command=lambda: controller.show_frame(statistics))
+        mm_statistics_button = ttk.Button(self, text="Statistics", command=lambda: controller.show_frame(Statistics))
         mm_statistics_button.pack()
-        mm_options = ttk.Button(self, text="Options", command=lambda: controller.show_frame(options))
+        mm_options = ttk.Button(self, text="Options", command=lambda: controller.show_frame(Options))
         mm_options.pack()
 
 
-class new_game(tk.Frame):
+class New_game(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="New Game", font=MAIN_MENU_FONT)
         label.pack(pady=10, padx=10)
 
-        ng_new_hero = ttk.Button(self, text="Create new hero", command=lambda: controller.show_frame(new_hero))
+        ng_new_hero = ttk.Button(self, text="Create new hero", command=lambda: controller.show_frame(New_hero))
         ng_new_hero.pack()
-        ng_premade_hero = ttk.Button(self, text="Load hero", command=lambda: controller.show_frame(load_hero))
+        ng_premade_hero = ttk.Button(self, text="Load hero", command=lambda: controller.show_frame(Load_hero))
         ng_premade_hero.pack()
-        ng_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(main_menu))
+        ng_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(Main_menu))
         ng_main_menu_button.pack()
 
 
-class new_hero(tk.Frame):
+class New_hero(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Character Creator", font=TYPIC_FONT)
         label.grid(row=0, column=5)
 
         toolbar = tk.Listbox(self, bg="#e0e0eb", selectmode='SINGLE')
-        # Gotta insert values from db
 
         try:
             sql_connector = sqlite3.connect('RPGSE.db')
@@ -99,47 +100,56 @@ class new_hero(tk.Frame):
         race_number = 0
         for race in list_of_races:
             toolbar.insert(race_number, list_of_races[race_number][1])
-            label = ttk.Label(self, text="{}hp".format(list_of_races[race_number][2]), font=TYPIC_FONT)
-            label.grid(row=2, column=0)
             race_number += 1
         toolbar.grid(row=1, column=0, sticky="ns")
 
-        label = ttk.Label(self, text="{}hp".format(list_of_races), font=TYPIC_FONT)
-        label.grid(row=2, column=0)
+        rase_modifier_label = ttk.Label(self, text="FILLER", font=TYPIC_FONT)
+        rase_modifier_label.grid(row=2, column=0)
 
-        nh_back = ttk.Button(self, text="Back", command=lambda: controller.show_frame(new_game))
+        def get_player_stats(self):
+            player_stats_list = [player_strength.get()]
+            print(player_stats_list)
+
+        player_strength = tk.Scale(self, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1)
+        player_strength.grid(row=1, column=5)
+
+        apply_stats_button = ttk.Button(self, text=u"Apply Stats")
+        apply_stats_button.bind("<Button-1>", get_player_stats)  # Why there`s a need to bind it?! Without binding it`s not working
+        apply_stats_button.grid(row=6, column=6)
+
+        nh_back = ttk.Button(self, text="Back", command=lambda: controller.show_frame(New_game))
         nh_back.grid(row=10, column=5)
 
 
-class load_hero(tk.Frame):
+class Load_hero(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Choose a Character", font=TYPIC_FONT)
         label.pack(pady=5, padx=10)
 
-        lh_back = ttk.Button(self, text="Back", command=lambda: controller.show_frame(new_game))
+        lh_back = ttk.Button(self, text="Back", command=lambda: controller.show_frame(New_game))
         lh_back.pack()
 
 
-class load_game(tk.Frame):
+class Load_game(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Load Game", font=MAIN_MENU_FONT)
         label.pack(pady=10, padx=10)
 
-        lg_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(main_menu))
+        lg_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(Main_menu))
         lg_main_menu_button.pack()
 
 
-class statistics(tk.Frame):
+class Statistics(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Statistics", font=MAIN_MENU_FONT)
         label.pack(pady=10, padx=10)
 
-        stat_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(main_menu))
+        stat_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(Main_menu))
         stat_main_menu_button.pack()
 
         f = Figure(figsize=(5, 5), dpi=100)  # f stands for Figure
@@ -155,23 +165,31 @@ class statistics(tk.Frame):
         canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 
-class options(tk.Frame):
+class Options(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+
         label = ttk.Label(self, text="Options", font=MAIN_MENU_FONT)
         label.grid(row=0, column=0)
+
         window_resolution_label = ttk.Label(self, text="Window Resolution")
         window_resolution_label.grid(row=1, column=0)
-        window_resolution_option = ttk.Combobox(self, text="Window Resolution", width=50)
+
+        window_resolution_option = ttk.Combobox(self, text="Window Resolution", width=50, state="readonly")
         window_resolution_option["values"] = RESOLUTION_LIST
-        current_resolution = window_resolution_option.get()
-        print(current_resolution)
+        # window_resolution_option.current(1)
         window_resolution_option.grid(row=1, column=1)
 
-        apply_resolution = ttk.Button(self, text="Apply", command=window_resolution_option.get())
-        apply_resolution.grid(row=1, column=2)
-        stat_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(main_menu))
+        def current_window_resolution(self):
+            value_now = window_resolution_option.get()
+            print("Resolution is", value_now)
+
+        apply_resolution_button = ttk.Button(self, text=u"Apply")
+        apply_resolution_button.grid(row=1, column=2)
+        apply_resolution_button.bind("<Button-1>", current_window_resolution)  # Why it must be only <Button-1>?!
+
+        stat_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(Main_menu))
         stat_main_menu_button.grid(row=10, column=0, sticky="sew")
 
 
