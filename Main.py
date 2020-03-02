@@ -127,14 +127,24 @@ class New_hero(tk.Frame):
             print(e)
         sql_cursor.execute("""SELECT * FROM Races""")
         list_of_races = sql_cursor.fetchall()
+        print(list_of_races)
         race_number = 0
         for race in list_of_races:
-            race_options.insert(race_number, list_of_races[race_number][1])
+            race_options.insert(race_number, str(list_of_races[race_number][1]))
             race_number += 1
         race_options.grid(row=0, column=0)
 
-        rase_modifier_label = ttk.Label(race_frame, text="FILLER", font=TYPIC_FONT)
-        rase_modifier_label.grid(row=1, column=0, sticky="nesw")
+        def pick_race(self):
+            highlighted_race = race_options.get(race_options.curselection())
+            chosen_race_var.set(highlighted_race)
+
+        chosen_race_var = tk.StringVar()
+        race_picker_label = tk.Label(race_frame, font=TYPIC_FONT, width=10, textvariable=chosen_race_var)
+        race_picker_label.grid()
+
+        race_pick_confirmation = tk.Button(race_frame, text="Pick race")
+        race_pick_confirmation.bind("<Button-1>", pick_race)
+        race_pick_confirmation.grid(row=2, column=0)
 
         def apply_player_stats(self):
             player_stats_list = [player_strength.get(),

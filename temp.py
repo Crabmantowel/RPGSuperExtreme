@@ -1,16 +1,48 @@
-from tkinter import *
-root = Tk()
+# from tkinter import *
+# root = Tk()
+#
+#
+# def getV(root):
+#     a = scale1.get()
+#     print("Значение", a)
+#
+#
+# scale1 = Scale(root, orient=HORIZONTAL, length=300, from_=50, to=80, tickinterval=5,
+#                resolution=5)
+# button1 = Button(root, text=u"Получить значение")
+# scale1.pack()
+# button1.pack()
+# button1.bind("<Button-1>", getV)
+# root.mainloop()
 
+import tkinter as tk
 
-def getV(root):
-    a = scale1.get()
-    print("Значение", a)
+window = tk.Tk()
+window.title('My Window')
 
+window.geometry('500x300')
 
-scale1 = Scale(root, orient=HORIZONTAL, length=300, from_=50, to=80, tickinterval=5,
-               resolution=5)
-button1 = Button(root, text=u"Получить значение")
-scale1.pack()
-button1.pack()
-button1.bind("<Button-1>", getV)
-root.mainloop()
+var1 = tk.StringVar()
+l = tk.Label(window, bg='green', fg='yellow',font=('Arial', 12), width=10, textvariable=var1)
+l.pack()
+
+def print_selection():
+    value = lb.get(lb.curselection())
+    var1.set(value)
+
+b1 = tk.Button(window, text='print selection', width=15, height=2, command=print_selection)
+b1.pack()
+
+var2 = tk.StringVar()
+var2.set((1,2,3,4))
+lb = tk.Listbox(window, listvariable=var2)
+
+list_items = [11,22,33,44]
+for item in list_items:
+    lb.insert('end', item)
+lb.insert(1, 'first')
+lb.insert(2, 'second')
+lb.delete(2)
+lb.pack()
+
+window.mainloop()
