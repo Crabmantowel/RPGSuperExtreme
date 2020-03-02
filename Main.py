@@ -148,39 +148,23 @@ class New_hero(tk.Frame):
             print(player_stats_list)
 
         def create_stats_scale(stat_name):
-            stat_name = tk.Scale(stats_frame, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1, width=5)
+            stat_name = tk.Scale(stats_frame, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1, width=5, label=stat_name)
             return stat_name
-        global player_stats
-        player_stats = {"Strength": create_stats_scale,
-                        "Perception": create_stats_scale,
-                        "Endurance": create_stats_scale,
-                        "Charisma": create_stats_scale,
-                        "Intelligence": create_stats_scale,
-                        "Agility": create_stats_scale,
-                        "Luck": create_stats_scale}
 
-        player_strength = create_stats_scale(player_stats["Strength"])
+        player_strength = create_stats_scale("Strength")
         player_strength.grid(row=1, column=0)
-        player_perception = create_stats_scale(player_stats["Perception"])
+        player_perception = create_stats_scale("Perception")
         player_perception.grid(row=2, column=0)
-        player_endurance = create_stats_scale(player_stats["Endurance"])
+        player_endurance = create_stats_scale("Endurance")
         player_endurance.grid(row=3, column=0)
-        player_charisma = create_stats_scale(player_stats["Charisma"])
+        player_charisma = create_stats_scale("Charisma")
         player_charisma.grid(row=4, column=0)
-        player_intelligence = create_stats_scale(player_stats["Intelligence"])
+        player_intelligence = create_stats_scale("Intelligence")
         player_intelligence.grid(row=5, column=0)
-        player_agility = create_stats_scale(player_stats["Agility"])
+        player_agility = create_stats_scale("Agility")
         player_agility.grid(row=6, column=0)
-        player_luck = create_stats_scale(player_stats["Luck"])
+        player_luck = create_stats_scale("Luck")
         player_luck.grid(row=7, column=0)
-
-        def create_stat_labels(stat_name):
-            stats_quantity = 0
-            for stat in player_stats:
-                stat_label = tk.Label(stats_frame, text="test")
-                stats_quantity += 1
-                stat_label.grid(row=stats_quantity, column=1)
-        create_stat_labels(player_stats["Strength"])
 
         apply_stats_button = ttk.Button(stats_frame, text=u"Apply Stats")
         apply_stats_button.bind("<Button-1>", apply_player_stats)  # Why there`s a need to bind it?! Without binding it`s not working
