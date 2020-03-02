@@ -11,7 +11,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 matplotlib.use("TkAgg")
 
-
 MAIN_MENU_FONT = ("Verdana", 12)
 TYPIC_FONT = ("Verdana", 8)
 RESOLUTION_LIST = ["320x200", "800x600", "1024x768", "1366x768"]
@@ -51,7 +50,7 @@ class RPGSE(tk.Tk):
 
 
 class Main_menu(tk.Frame):
-
+    ''''Game`s new menu'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Main Menu", font=MAIN_MENU_FONT)
@@ -68,7 +67,7 @@ class Main_menu(tk.Frame):
 
 
 class New_game(tk.Frame):
-
+    ''''Sub-menu for player to decide what to do next'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="New Game", font=MAIN_MENU_FONT)
@@ -83,13 +82,44 @@ class New_game(tk.Frame):
 
 
 class New_hero(tk.Frame):
+    ''''Hero creation window'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+
+        #Sub-Frames go here
+        player_name_frame = tk.Frame(self, parent)
+        player_name_frame.grid(row=1, column=1)
+        race_frame = tk.Frame(self, parent)
+        race_frame.grid(row=2, column=0)
+        stats_frame = tk.Frame(self, parent)
+        stats_frame.grid(row=2, column=1)
+        stats_label = tk.Frame(self, parent)
+        stats_label.grid(row=2, column=2)
+
         label = ttk.Label(self, text="Character Creator", font=TYPIC_FONT)
-        label.grid(row=0, column=5)
+        label.grid(row=0, column=0)
 
-        toolbar = tk.Listbox(self, bg="#e0e0eb", selectmode='SINGLE')
+        wrong_names = open("Vulgar_names.txt", 'r')
+        list_of_bad_names = wrong_names.read().split()
 
+        def name_vulgarity_check():
+            if player_name.get().lower() in list_of_bad_names:
+                vulgar_name_error = tk.Label(self, text="Try non-vulgar name", fg='red')
+                vulgar_name_error.grid(row=0, column=3)
+            else:
+                welcome_label = tk.Label(self, text=f"You`r new name is {player_name.get()}!", fg="green")
+                welcome_label.grid(row=0, column=3)
+
+        username_label = tk.Label(player_name_frame, text="Enter your username: ")
+        username_label.grid(row=0, column=0)
+
+        player_name = tk.Entry(player_name_frame, width=50)
+        player_name.grid(row=0, column=1)
+
+        button = ttk.Button(player_name_frame, text="Submit", command=name_vulgarity_check)
+        button.grid(row=0, column=2)
+
+        race_options = tk.Listbox(race_frame, bg="#e0e0eb", selectmode='SINGLE')
         try:
             sql_connector = sqlite3.connect('RPGSE.db')
             sql_cursor = sql_connector.cursor()
@@ -99,29 +129,69 @@ class New_hero(tk.Frame):
         list_of_races = sql_cursor.fetchall()
         race_number = 0
         for race in list_of_races:
-            toolbar.insert(race_number, list_of_races[race_number][1])
+            race_options.insert(race_number, list_of_races[race_number][1])
             race_number += 1
-        toolbar.grid(row=1, column=0, sticky="ns")
+        race_options.grid(row=0, column=0)
 
-        rase_modifier_label = ttk.Label(self, text="FILLER", font=TYPIC_FONT)
-        rase_modifier_label.grid(row=2, column=0)
+        rase_modifier_label = ttk.Label(race_frame, text="FILLER", font=TYPIC_FONT)
+        rase_modifier_label.grid(row=1, column=0, sticky="nesw")
 
-        def get_player_stats(self):
-            player_stats_list = [player_strength.get()]
+        def apply_player_stats(self):
+            player_stats_list = [player_strength.get(),
+                                 player_perception.get(),
+                                 player_endurance.get(),
+                                 player_charisma.get(),
+                                 player_intelligence.get(),
+                                 player_agility.get(),
+                                 player_luck.get()
+                                 ]
             print(player_stats_list)
 
-        player_strength = tk.Scale(self, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1)
-        player_strength.grid(row=1, column=5)
+        def create_stats_scale(stat_name):
+            stat_name = tk.Scale(stats_frame, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1, width=5)
+            return stat_name
+        global player_stats
+        player_stats = {"Strength": create_stats_scale,
+                        "Perception": create_stats_scale,
+                        "Endurance": create_stats_scale,
+                        "Charisma": create_stats_scale,
+                        "Intelligence": create_stats_scale,
+                        "Agility": create_stats_scale,
+                        "Luck": create_stats_scale}
 
-        apply_stats_button = ttk.Button(self, text=u"Apply Stats")
-        apply_stats_button.bind("<Button-1>", get_player_stats)  # Why there`s a need to bind it?! Without binding it`s not working
-        apply_stats_button.grid(row=6, column=6)
+        player_strength = create_stats_scale(player_stats["Strength"])
+        player_strength.grid(row=1, column=0)
+        player_perception = create_stats_scale(player_stats["Perception"])
+        player_perception.grid(row=2, column=0)
+        player_endurance = create_stats_scale(player_stats["Endurance"])
+        player_endurance.grid(row=3, column=0)
+        player_charisma = create_stats_scale(player_stats["Charisma"])
+        player_charisma.grid(row=4, column=0)
+        player_intelligence = create_stats_scale(player_stats["Intelligence"])
+        player_intelligence.grid(row=5, column=0)
+        player_agility = create_stats_scale(player_stats["Agility"])
+        player_agility.grid(row=6, column=0)
+        player_luck = create_stats_scale(player_stats["Luck"])
+        player_luck.grid(row=7, column=0)
+
+        def create_stat_labels(stat_name):
+            stats_quantity = 0
+            for stat in player_stats:
+                stat_label = tk.Label(stats_frame, text="test")
+                stats_quantity += 1
+                stat_label.grid(row=stats_quantity, column=1)
+        create_stat_labels(player_stats["Strength"])
+
+        apply_stats_button = ttk.Button(stats_frame, text=u"Apply Stats")
+        apply_stats_button.bind("<Button-1>", apply_player_stats)  # Why there`s a need to bind it?! Without binding it`s not working
+        apply_stats_button.grid(row=8, column=0)
 
         nh_back = ttk.Button(self, text="Back", command=lambda: controller.show_frame(New_game))
-        nh_back.grid(row=10, column=5)
+        nh_back.grid(row=10, column=5, sticky='esw')
 
 
 class Load_hero(tk.Frame):
+    '''If there was a premade character or player created a new one, player can load it with all stats'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Choose a Character", font=TYPIC_FONT)
@@ -132,7 +202,7 @@ class Load_hero(tk.Frame):
 
 
 class Load_game(tk.Frame):
-
+    ''''Loads the game'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Load Game", font=MAIN_MENU_FONT)
@@ -143,7 +213,7 @@ class Load_game(tk.Frame):
 
 
 class Statistics(tk.Frame):
-
+    ''''Shows player statistics with a graph'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = ttk.Label(self, text="Statistics", font=MAIN_MENU_FONT)
@@ -166,7 +236,7 @@ class Statistics(tk.Frame):
 
 
 class Options(tk.Frame):
-
+    '''Frame for options change'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
@@ -178,12 +248,14 @@ class Options(tk.Frame):
 
         window_resolution_option = ttk.Combobox(self, text="Window Resolution", width=50, state="readonly")
         window_resolution_option["values"] = RESOLUTION_LIST
-        # window_resolution_option.current(1)
+        window_resolution_option.current(1)
         window_resolution_option.grid(row=1, column=1)
 
         def current_window_resolution(self):
+            global value_now
             value_now = window_resolution_option.get()
             print("Resolution is", value_now)
+            return value_now
 
         apply_resolution_button = ttk.Button(self, text=u"Apply")
         apply_resolution_button.grid(row=1, column=2)
@@ -191,6 +263,10 @@ class Options(tk.Frame):
 
         stat_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(Main_menu))
         stat_main_menu_button.grid(row=10, column=0, sticky="sew")
+
+
+class Player_actor():
+    pass
 
 
 game = RPGSE()
