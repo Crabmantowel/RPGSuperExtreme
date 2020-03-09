@@ -15,34 +15,80 @@
 # button1.bind("<Button-1>", getV)
 # root.mainloop()
 
-import tkinter as tk
+# import tkinter as tk
+#
+# window = tk.Tk()
+# window.title('My Window')
+#
+# window.geometry('500x300')
+#
+# var1 = tk.StringVar()
+# l = tk.Label(window, bg='green', fg='yellow',font=('Arial', 12), width=10, textvariable=var1)
+# l.pack()
+#
+# def print_selection():
+#     value = lb.get(lb.curselection())
+#     var1.set(value)
+#
+# b1 = tk.Button(window, text='print selection', width=15, height=2, command=print_selection)
+# b1.pack()
+#
+# var2 = tk.StringVar()
+# var2.set((1,2,3,4))
+# lb = tk.Listbox(window, listvariable=var2)
+#
+# list_items = [11,22,33,44]
+# for item in list_items:
+#     lb.insert('end', item)
+# lb.insert(1, 'first')
+# lb.insert(2, 'second')
+# lb.delete(2)
+# lb.pack()
+#
+# window.mainloop()
 
-window = tk.Tk()
-window.title('My Window')
 
-window.geometry('500x300')
+from tkinter import Tk, BOTH, IntVar, LEFT
+from tkinter.ttk import Frame, Label, Scale, Style
 
-var1 = tk.StringVar()
-l = tk.Label(window, bg='green', fg='yellow',font=('Arial', 12), width=10, textvariable=var1)
-l.pack()
+class Example(Frame):
 
-def print_selection():
-    value = lb.get(lb.curselection())
-    var1.set(value)
+    def __init__(self):
+        super().__init__()
 
-b1 = tk.Button(window, text='print selection', width=15, height=2, command=print_selection)
-b1.pack()
+        self.initUI()
 
-var2 = tk.StringVar()
-var2.set((1,2,3,4))
-lb = tk.Listbox(window, listvariable=var2)
 
-list_items = [11,22,33,44]
-for item in list_items:
-    lb.insert('end', item)
-lb.insert(1, 'first')
-lb.insert(2, 'second')
-lb.delete(2)
-lb.pack()
+    def initUI(self):
 
-window.mainloop()
+        self.master.title("Scale")
+        self.style = Style()
+        self.style.theme_use("default")
+
+        self.pack(fill=BOTH, expand=1)
+
+        scale = Scale(self, from_=0, to=100,
+            command=self.onScale)
+        scale.pack(side=LEFT, padx=15)
+
+        self.var = IntVar()
+        self.label = Label(self, text=0, textvariable=self.var)
+        self.label.pack(side=LEFT)
+
+
+    def onScale(self, val):
+
+        v = int(float(val))
+        self.var.set(v)
+
+
+def main():
+
+    root = Tk()
+    ex = Example()
+    root.geometry("250x100+300+300")
+    root.mainloop()
+
+
+if __name__ == '__main__':
+    main()

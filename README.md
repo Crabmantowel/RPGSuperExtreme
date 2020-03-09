@@ -3,6 +3,8 @@
 TBD:
 1)Menu:
 	1-1)Save\Load Feature upd: later using db
+	1-2)Save hero feature takes everythong with .get() and writes it down to the db,
+			during the game it also writes data on points after each fight
 
 	1-2)Make Statistics count something and not just show unconnected graph upd: Stats must interconnect with points for each player, and show the top 10 runs
 
@@ -12,9 +14,9 @@ TBD:
 		1-3-3)Do so that options window resolution btn would change the real window size (global for the get() function)
 
 	1-4)Create_char:
-		1-4-1)FILLER label under racial menu must get data from db according to the chosen race
-		1-4-2)Stats labels must take right values (needs tinkering)
-		1-4-3)Base Stats are 0, possible alteration points = 30
+		1-4-1)FILLER label under racial menu must get data from db according to the chosen race upd:done now it shows hp modifier for race
+		1-4-2)Stats labels must take right values (needs tinkering) upd:redone it to Message, now it works with multiline
+		1-4-3)Base Stats are 0, possible alteration points = 40 upd: Done, now it must lower down total label
 			1-4-3-1)Do so that 30 points would automatically count down when altering stats
 
 2)Game:
