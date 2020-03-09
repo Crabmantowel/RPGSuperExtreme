@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
+from PIL import ImageTk, Image
 
 import sqlite3
 from sqlite3 import Error
 
-from random import randint
+import random
 
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -27,7 +28,7 @@ class RPGSE(tk.Tk):
         tk.Tk.wm_title(self, "RPG Super Extreme")
         tk.Tk.iconbitmap(self, default="Skelly.ico")  # Don`t work with .bmp or .png formats
         tk.Tk.geometry(self, "800x600")
-        tk.Tk.resizable(self, width=False, height=False)
+        #tk.Tk.resizable(self, width=False, height=False)
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -166,18 +167,15 @@ class New_hero(tk.Frame):
                                  player_luck.get()
                                  ]
             print(player_stats_list)
-            GIVEN_STAT_POINTS = 40
-            for stat_points in player_stats_list:
-                stat_points_left = int(float(GIVEN_STAT_POINTS - stat_points))
-            print(GIVEN_STAT_POINTS)
-            GIVEN_STAT_POINTS.set(stat_points_left)
 
-        def onScale(self, val):
-            v = int(float(val))
+        GIVEN_STAT_POINTS = tk.IntVar()
+
+        def onScale(val):
+            v = GIVEN_STAT_POINTS.get() + int(float(val))
             GIVEN_STAT_POINTS.set(v)
 
         def create_stats_scale(stat_name):
-            stat_name = tk.Scale(stats_frame, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1, width=5, label=stat_name)
+            stat_name = tk.Scale(stats_frame, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1, width=5, label=stat_name, command=onScale)
             return stat_name
 
         player_strength = create_stats_scale("Strength")
@@ -195,9 +193,9 @@ class New_hero(tk.Frame):
         player_luck = create_stats_scale("Luck")
         player_luck.grid(row=7, column=0)
 
-        GIVEN_STAT_POINTS = tk.IntVar()
-        stat_points_counter = tk.Label(stats_frame, font=MAIN_MENU_FONT, textvariable=GIVEN_STAT_POINTS)
-        stat_points_counter.grid(row=0, column=0)
+        #THIS PART IS UNDER CONSTRUCTION! IT DOESN`T WORK AS INTENDED
+        # stat_points_counter = tk.Label(stats_frame, font=MAIN_MENU_FONT, textvariable=GIVEN_STAT_POINTS)
+        # stat_points_counter.grid(row=0, column=0)
 
         apply_stats_button = ttk.Button(stats_frame, text=u"Apply Stats")
         apply_stats_button.bind("<Button-1>", apply_player_stats)  # Why there`s a need to bind it?! Without binding it`s not working
@@ -289,27 +287,36 @@ class Game(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        name_health_bar_frame = tk.Frame(self, parent)
+        name_health_bar_frame = tk.Frame(self, parent, bg="Green")
         name_health_bar_frame.grid(row=0, column=0)
 
-        # player_health =
+        health_icon = ImageTk.PhotoImage(Image.open("Health.png"))
+        player_health_label = tk.Label(name_health_bar_frame, image=health_icon, text="HEALTH")
+        player_health_label.grid(row=0, column=0)
 
-        fighting_frame = tk.Frame(self, parent)
+        player_main_stats = tk.Message(name_health_bar_frame)
+        player_main_stats.grid(row=0, column=1)
+
+        fighting_frame = tk.Frame(self, parent, bg="Red")
         fighting_frame.grid(row=1, column=0, columnspan=4)
 
         player_fighting_frame = tk.Frame(fighting_frame, parent)
         player_fighting_frame.grid(row=0, column=0, columnspan=2)
-        player_attack_label = tk.Label(player_fighting_frame, text="SWORD IMG HERE")
+
+        sword_img = tk.PhotoImage(file="Attack.png")
+        player_attack_label = tk.Label(player_fighting_frame, image=sword_img)
         player_attack_label.grid(row=0, column=0)
         player_attack_button = tk.Button(player_fighting_frame, text="Attack")
         player_attack_button.grid(row=0, column=1)
 
-        player_defence_label = tk.Label(player_fighting_frame, text="SHIELD IMG HERE")
+        shield_img = tk.PhotoImage(file="Shield.png")
+        player_defence_label = tk.Label(player_fighting_frame, image=shield_img)
         player_defence_label.grid(row=1, column=0)
         player_defence_button = tk.Button(player_fighting_frame, text="Defend")
         player_defence_button.grid(row=1, column=1)
 
-        player_run_label = tk.Label(player_fighting_frame, text="RUN IMG HERE")
+        run_img = tk.PhotoImage(file="Run.png")
+        player_run_label = tk.Label(player_fighting_frame, image=run_img)
         player_run_label.grid(row=2, column=0)
         player_run_button = tk.Button(player_fighting_frame, text="Run away")
         player_run_button.grid(row=2, column=1)
@@ -318,12 +325,10 @@ class Game(tk.Frame):
         enemy_fighting_frame.grid(row=0, column=2, columnspan=2)
 
         def enemy_encounter():
-            enemy_encounter_label = tk.Label(enemy_fighting_frame, text=f"You`ve encountered {list_of_races}")
+            enemy_encounter_label = tk.Message(enemy_fighting_frame, text=f"You`ve encountered a {random.choice(list_of_races[1])}")
             enemy_encounter_label.grid(row=0, column=0)
 
-        enemy_encounter()
-
-        lower_menu_frame = tk.Frame(self, parent)
+        lower_menu_frame = tk.Frame(self, parent, bg="Blue")
         lower_menu_frame.grid(row=2, column=0)
         game_main_menu_button = ttk.Button(lower_menu_frame, text="Return to main Menu", command=lambda: controller.show_frame(Main_menu))
         game_main_menu_button.grid(row=10, column=5)
