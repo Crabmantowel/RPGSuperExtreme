@@ -92,12 +92,12 @@ class New_hero(tk.Frame):
         player_name_frame.grid(row=1, column=1)
         race_frame = tk.Frame(self, parent)
         race_frame.grid(row=2, column=0)
+
         stats_frame = tk.Frame(self, parent)
         stats_frame.grid(row=2, column=1)
-        stats_label = tk.Frame(self, parent)
-        stats_label.grid(row=2, column=2)
+
         back_next_frame = tk.Frame(self, parent)
-        back_next_frame.grid(row=10, column=3)
+        back_next_frame.grid(row=3, column=1)
         label = ttk.Label(self, text="Character Creator", font=TYPIC_FONT)
         label.grid(row=0, column=0)
 
@@ -111,6 +111,8 @@ class New_hero(tk.Frame):
             else:
                 welcome_label = tk.Label(player_name_frame, text=f"You`r new name is {player_name.get()}!", fg="green")
                 welcome_label.grid(row=1, column=1)
+                global confirmed_player_name
+                confirmed_player_name = player_name.get()
 
         username_label = tk.Label(player_name_frame, text="Enter your username: ")
         username_label.grid(row=0, column=0)
@@ -158,6 +160,7 @@ class New_hero(tk.Frame):
         race_pick_confirmation.grid(row=2, column=0)
 
         def apply_player_stats(self):
+            global player_stats_list
             player_stats_list = [player_strength.get(),
                                  player_perception.get(),
                                  player_endurance.get(),
@@ -166,10 +169,46 @@ class New_hero(tk.Frame):
                                  player_agility.get(),
                                  player_luck.get()
                                  ]
-            print(player_stats_list)
+            return player_stats_list
+
+        def next_confirmation_message():
+            try:
+                player_stats_list is True
+            except NameError:
+                tk.messagebox.showwarning("Stats aren`t applied", "Please push \"Apply stats\" first.")
+
+            try:
+                confirmed_player_name is True
+            except NameError:
+                tk.messagebox.showwarning("No name", "Please submit your name first")
+            else:
+                confirmation = tk.messagebox.askyesno("Confirmation", f"""Do you really want to continue with these parameters?:\n
+                                                        You`r name is {player_name.get()}, and you`ve been born as a{chosen_race_var.get()}\n
+                                                        S. P. E. C. I. A. L.\n{player_stats_list}""")
+                if confirmation is True:
+                    sql_cursor.execute(f"""UPDATE
+                                                Player
+                                            SET
+                                                Name = '{confirmed_player_name}',
+                                                Strength = {player_stats_list[0]},
+                                                Perception = {player_stats_list[0]},
+                                                Endurance = {player_stats_list[0]},
+                                                Charisma = {player_stats_list[0]},
+                                                Intelligence = {player_stats_list[0]},
+                                                Agility = {player_stats_list[0]},
+                                                Luck = {player_stats_list[0]},
+                                                Race_name = {player_stats_list[0]}
+                                            WHERE
+                                                ID = 1;
+                                            """)
+                    sql_connector.commit()
+                    return controller.show_frame(Game)
+                else:
+                    pass
 
         GIVEN_STAT_POINTS = tk.IntVar()
 
+        # !!!!Self-Decreasing points ARE UNDER CONSTRUCTION!!!! NOT WORKING
         def onScale(val):
             v = GIVEN_STAT_POINTS.get() + int(float(val))
             GIVEN_STAT_POINTS.set(v)
@@ -193,6 +232,20 @@ class New_hero(tk.Frame):
         player_luck = create_stats_scale("Luck")
         player_luck.grid(row=7, column=0)
 
+        stat_strength_description = tk.Message(stats_frame, justify=tk.LEFT, width=120, text="Strength multiplies your damage output")
+        stat_strength_description.grid(row=1, column=1)
+        stat_perception_description = tk.Message(stats_frame, justify=tk.LEFT, width=120, text="Perception increases your chances to hit an enemy")
+        stat_perception_description.grid(row=2, column=1)
+        stat_endurance_description = tk.Message(stats_frame, justify=tk.LEFT, width=120, text="Endurance multiplies the times you may do things")
+        stat_endurance_description.grid(row=3, column=1)
+        stat_charisma_description = tk.Message(stats_frame, justify=tk.LEFT, width=120, text="Charisma decreases stats of your enemy")
+        stat_charisma_description.grid(row=4, column=1)
+        stat_intelligence_description = tk.Message(stats_frame, justify=tk.LEFT, width=120, text="Intelligence increases your HP")
+        stat_intelligence_description.grid(row=5, column=1)
+        stat_agility_description = tk.Message(stats_frame, justify=tk.LEFT, width=120, text="Agility provides you with a higher block chance")
+        stat_agility_description.grid(row=6, column=1)
+        stat_luck_description = tk.Message(stats_frame, justify=tk.LEFT, width=120, text="Luck increases your critical strike possibility")
+        stat_luck_description.grid(row=7, column=1)
         #THIS PART IS UNDER CONSTRUCTION! IT DOESN`T WORK AS INTENDED
         # stat_points_counter = tk.Label(stats_frame, font=MAIN_MENU_FONT, textvariable=GIVEN_STAT_POINTS)
         # stat_points_counter.grid(row=0, column=0)
@@ -203,8 +256,46 @@ class New_hero(tk.Frame):
 
         nh_back = ttk.Button(back_next_frame, text="Back", command=lambda: controller.show_frame(New_game))
         nh_back.grid(row=0, column=0)
-        nh_next = ttk.Button(back_next_frame, text="Next", command=lambda: controller.show_frame(Game))
+        nh_next = ttk.Button(back_next_frame, text="Next", command=lambda: next_confirmation_message())
         nh_next.grid(row=0, column=1)
+
+        def save_hero_into_db():
+            try:
+                chosen_race_var.get() is True
+                confirmed_player_name is True
+                player_stats_list is True
+            except:
+                tk.messagebox.showerror("Not all fields", "You have to fill in all fields\nbefore saving your hero")
+            else:
+                try:
+                    sql_cursor.execute(f"""INSERT INTO SavedChars(
+                                                        Name,
+                                                        Strength,
+                                                        Perception,
+                                                        Endurance,
+                                                        Charisma,
+                                                        Intelligence,
+                                                        Agility,
+                                                        Luck,
+                                                        Race_name)
+                                                        VALUES(
+                                                        '{confirmed_player_name}',
+                                                        {player_stats_list[0]},
+                                                        {player_stats_list[1]},
+                                                        {player_stats_list[2]},
+                                                        {player_stats_list[3]},
+                                                        {player_stats_list[4]},
+                                                        {player_stats_list[5]},
+                                                        {player_stats_list[6]},
+                                                        '{chosen_race_var.get()}'
+                                                        );""")
+                    sql_connector.commit()
+                    tk.messagebox.showinfo("Saved Successfully", "Your Hero is saved!")
+                except:
+                    tk.messagebox.showerror("Horrible malfunction", "Something went horribly wrong, our Gnomes are on it!")
+
+        nh_save_hero = ttk.Button(back_next_frame, text="Save Hero", command=lambda: save_hero_into_db())
+        nh_save_hero.grid(row=0, column=2)
 
 
 class Load_hero(tk.Frame):
@@ -291,45 +382,53 @@ class Game(tk.Frame):
         name_health_bar_frame.grid(row=0, column=0)
 
         health_icon = ImageTk.PhotoImage(Image.open("Health.png"))
-        player_health_label = tk.Label(name_health_bar_frame, image=health_icon, text="HEALTH")
-        player_health_label.grid(row=0, column=0)
+        player_health_icon = tk.Label(name_health_bar_frame, image=health_icon)
+        player_health_icon.image = health_icon
+        player_health_icon.grid(row=0, column=0)
+
+        player_health = tk.IntVar
+        player_health_displayed = tk.Label(name_health_bar_frame, text="You are")
+        player_health_displayed.grid(row=0, column=1)
 
         player_main_stats = tk.Message(name_health_bar_frame)
-        player_main_stats.grid(row=0, column=1)
+        player_main_stats.grid(row=0, column=1, sticky=tk.N + tk.S + tk.E + tk.W)
 
         fighting_frame = tk.Frame(self, parent, bg="Red")
         fighting_frame.grid(row=1, column=0, columnspan=4)
 
         player_fighting_frame = tk.Frame(fighting_frame, parent)
-        player_fighting_frame.grid(row=0, column=0, columnspan=2)
+        player_fighting_frame.grid(row=0, column=0, columnspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
 
         sword_img = tk.PhotoImage(file="Attack.png")
         player_attack_label = tk.Label(player_fighting_frame, image=sword_img)
+        player_attack_label.image = sword_img  # If not referenced - Tkinter Garbage collector will dismiss it from the widget
         player_attack_label.grid(row=0, column=0)
         player_attack_button = tk.Button(player_fighting_frame, text="Attack")
         player_attack_button.grid(row=0, column=1)
 
         shield_img = tk.PhotoImage(file="Shield.png")
         player_defence_label = tk.Label(player_fighting_frame, image=shield_img)
+        player_defence_label.image = shield_img
         player_defence_label.grid(row=1, column=0)
         player_defence_button = tk.Button(player_fighting_frame, text="Defend")
         player_defence_button.grid(row=1, column=1)
 
         run_img = tk.PhotoImage(file="Run.png")
         player_run_label = tk.Label(player_fighting_frame, image=run_img)
+        player_run_label.image = run_img
         player_run_label.grid(row=2, column=0)
         player_run_button = tk.Button(player_fighting_frame, text="Run away")
         player_run_button.grid(row=2, column=1)
 
         enemy_fighting_frame = tk.Frame(fighting_frame, parent)
-        enemy_fighting_frame.grid(row=0, column=2, columnspan=2)
+        enemy_fighting_frame.grid(row=0, column=2, columnspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
 
         def enemy_encounter():
             enemy_encounter_label = tk.Message(enemy_fighting_frame, text=f"You`ve encountered a {random.choice(list_of_races[1])}")
             enemy_encounter_label.grid(row=0, column=0)
 
         lower_menu_frame = tk.Frame(self, parent, bg="Blue")
-        lower_menu_frame.grid(row=2, column=0)
+        lower_menu_frame.grid(row=2, column=0, sticky=tk.S)
         game_main_menu_button = ttk.Button(lower_menu_frame, text="Return to main Menu", command=lambda: controller.show_frame(Main_menu))
         game_main_menu_button.grid(row=10, column=5)
 

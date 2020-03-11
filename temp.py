@@ -106,4 +106,7 @@ def read_scales():
         print("Scale %d has value %d" %(i,scales[i].get()))
 b=Button(master,text="Read",command=read_scales) # button to read values
 b.pack(side=RIGHT)
+sword_img = PhotoImage(file="Attack_2.png")
+sword_label=Label(master, image=sword_img)
+sword_label.pack()
 mainloop()
