@@ -382,21 +382,30 @@ class Game(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         name_health_bar_frame = tk.Frame(self, parent)
-        name_health_bar_frame.grid(row=0, column=5)
+        name_health_bar_frame.grid(row=0, column=0)
+        try:
+            sql_connector = sqlite3.connect('RPGSE.db')
+            sql_cursor = sql_connector.cursor()
+        except Error as e:
+            print(e)
 
         def fetch_player():
-            try:
-                sql_connector = sqlite3.connect('RPGSE.db')
-                sql_cursor = sql_connector.cursor()
-            except Error as e:
-                print(e)
             sql_cursor.execute("""SELECT *
                                FROM Player;""")
             return list(sql_cursor.fetchall()[0])
 
+        def fetch_player_racial_buff():
+            sql_cursor.execute(f"""SELECT HP_modifier
+                                    FROM Races
+                                    WHERE Race_name = '{current_player[9]}';""")
+            return(sql_cursor.fetchall())
+
         current_player = fetch_player()
+        print(current_player)
         player_health = tk.IntVar()
-        player_health.set(100 * current_player[4])
+        player_racial_buff = fetch_player_racial_buff()[0][0]
+        print(player_racial_buff)
+        player_health.set(100 * current_player[4] + player_racial_buff)
 
         health_icon = ImageTk.PhotoImage(Image.open("Health.png"))
         player_health_displayed = tk.Label(name_health_bar_frame, font=("Arial", 14), textvariable=player_health, image=health_icon, compound=tk.BOTTOM)
@@ -414,22 +423,23 @@ class Game(tk.Frame):
                 stat_label.grid(row=0, column=counter)
                 counter += 1
 
-        def enemy_encounter():
-            enemy_encounter_label = tk.Message(enemy_fighting_frame, text=f"You`ve encountered a {random.choice(list_of_races[1])}")
-            enemy_encounter_label.grid(row=0, column=0)
-
         create_stats_list_and_images()
+
         fighting_frame = tk.Frame(self, parent)
-        fighting_frame.grid(row=1, column=0, columnspan=4)
+        fighting_frame.grid(row=1, column=0, columnspan=2)
 
         player_fighting_frame = tk.Frame(fighting_frame, parent)
         player_fighting_frame.grid(row=0, column=0, columnspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
+
+        def player_attack_action():
+            player_damage = 20 * current_player[2]
+
 
         sword_img = tk.PhotoImage(file="Attack.png")
         player_attack_label = tk.Label(player_fighting_frame, image=sword_img)
         player_attack_label.image = sword_img  # If not referenced - Tkinter Garbage collector will dismiss it from the widget
         player_attack_label.grid(row=0, column=0)
-        player_attack_button = tk.Button(player_fighting_frame, text="Attack")
+        player_attack_button = tk.Button(player_fighting_frame, text="Attack", command=lambda: player_attack_action())
         player_attack_button.grid(row=0, column=1)
 
         shield_img = tk.PhotoImage(file="Shield.png")
@@ -447,7 +457,33 @@ class Game(tk.Frame):
         player_run_button.grid(row=2, column=1)
 
         enemy_fighting_frame = tk.Frame(fighting_frame, parent)
-        enemy_fighting_frame.grid(row=0, column=2, columnspan=2)
+        enemy_fighting_frame.grid(row=0, column=2)
+
+        def enemy_encounter():
+            global enemy
+            enemy = []
+            enemy.append(random.choice(list_of_races)[1])
+            for i in range(7):
+                enemy.append(random.randint(1, 10))
+            enemy_hp = 100 * enemy[1]
+            enemy.append(enemy_hp)
+            if current_player[2] < 2:
+                enemy_description = "Something attacked you"
+            else:
+                enemy_description = f"You`ve encountered {enemy[0]}"
+
+            if current_player[2] >= 9:
+                enemy_description += f"\nit`s stats are: {enemy[1:-1]} it has {int(enemy[-1])} HP"
+            elif current_player[2] >= 7:
+                enemy_description += f"\nit`s stats are: {enemy[1:4]} it has {enemy[-1]}:HP"
+            elif current_player[2] >= 5:
+                enemy_description += f"\nit`s stats are: Strength-{enemy[1]}"
+            else:
+                pass
+            enemy_encounter_label = tk.Label(enemy_fighting_frame, anchor=tk.N, width=40, font=MAIN_MENU_FONT, text=enemy_description)
+            enemy_encounter_label.grid(row=0, column=0)
+
+        enemy_encounter()
 
         lower_menu_frame = tk.Frame(self, parent)
         lower_menu_frame.grid(row=2, column=0, sticky=tk.S)
