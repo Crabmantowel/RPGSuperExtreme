@@ -66,6 +66,9 @@ class Main_menu(tk.Frame):
         mm_options = ttk.Button(self, text="Options", command=lambda: controller.show_frame(Options))
         mm_options.pack()
 
+        mm_test_game_btn = tk.Button(self, bg="red", text="START", command=lambda: controller.show_frame(Game))
+        mm_test_game_btn.pack()
+
 
 class New_game(tk.Frame):
     ''''Sub-menu for player to decide what to do next'''
@@ -182,9 +185,9 @@ class New_hero(tk.Frame):
             except NameError:
                 tk.messagebox.showwarning("No name", "Please submit your name first")
             else:
-                confirmation = tk.messagebox.askyesno("Confirmation", f"""Do you really want to continue with these parameters?:\n
-                                                        You`r name is {player_name.get()}, and you`ve been born as a{chosen_race_var.get()}\n
-                                                        S. P. E. C. I. A. L.\n{player_stats_list}""")
+                confirmation = tk.messagebox.askyesno("Confirmation", f"""Do you really want to continue with these parameters?:
+                                                        You`r name is {player_name.get()}, and you`ve been born as a{chosen_race_var.get()}
+                                                        S. P. E. C. I. A. L. {player_stats_list}""")
                 if confirmation is True:
                     sql_cursor.execute(f"""UPDATE
                                                 Player
@@ -214,7 +217,7 @@ class New_hero(tk.Frame):
             GIVEN_STAT_POINTS.set(v)
 
         def create_stats_scale(stat_name):
-            stat_name = tk.Scale(stats_frame, orient=tk.HORIZONTAL, length=300, from_=0, to=10, tickinterval=10, resolution=1, width=5, label=stat_name, command=onScale)
+            stat_name = tk.Scale(stats_frame, orient=tk.HORIZONTAL, length=300, from_=1, to=10, tickinterval=10, resolution=1, width=5, label=stat_name, command=onScale)
             return stat_name
 
         player_strength = create_stats_scale("Strength")
@@ -378,22 +381,45 @@ class Game(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        name_health_bar_frame = tk.Frame(self, parent, bg="Green")
-        name_health_bar_frame.grid(row=0, column=0)
+        name_health_bar_frame = tk.Frame(self, parent)
+        name_health_bar_frame.grid(row=0, column=5)
+
+        def fetch_player():
+            try:
+                sql_connector = sqlite3.connect('RPGSE.db')
+                sql_cursor = sql_connector.cursor()
+            except Error as e:
+                print(e)
+            sql_cursor.execute("""SELECT *
+                               FROM Player;""")
+            return list(sql_cursor.fetchall()[0])
+
+        current_player = fetch_player()
+        player_health = tk.IntVar()
+        player_health.set(100 * current_player[4])
 
         health_icon = ImageTk.PhotoImage(Image.open("Health.png"))
-        player_health_icon = tk.Label(name_health_bar_frame, image=health_icon)
-        player_health_icon.image = health_icon
-        player_health_icon.grid(row=0, column=0)
+        player_health_displayed = tk.Label(name_health_bar_frame, font=("Arial", 14), textvariable=player_health, image=health_icon, compound=tk.BOTTOM)
+        player_health_displayed.image = health_icon
+        player_health_displayed.grid(row=0, column=0)
 
-        player_health = tk.IntVar
-        player_health_displayed = tk.Label(name_health_bar_frame, text="You are")
-        player_health_displayed.grid(row=0, column=1)
+        def create_stats_list_and_images():
+            counter = 1
+            for stat in current_player[2:9]:
+                current_img = ImageTk.PhotoImage(Image.open(f"Stats icons/{counter}).png"))
+                current_stat = tk.IntVar()
+                current_stat.set(stat)
+                stat_label = tk.Label(name_health_bar_frame, font=("Arial", 14), textvariable=current_stat, image=current_img, compound=tk.BOTTOM)
+                stat_label.image = current_img
+                stat_label.grid(row=0, column=counter)
+                counter += 1
 
-        player_main_stats = tk.Message(name_health_bar_frame)
-        player_main_stats.grid(row=0, column=1, sticky=tk.N + tk.S + tk.E + tk.W)
+        def enemy_encounter():
+            enemy_encounter_label = tk.Message(enemy_fighting_frame, text=f"You`ve encountered a {random.choice(list_of_races[1])}")
+            enemy_encounter_label.grid(row=0, column=0)
 
-        fighting_frame = tk.Frame(self, parent, bg="Red")
+        create_stats_list_and_images()
+        fighting_frame = tk.Frame(self, parent)
         fighting_frame.grid(row=1, column=0, columnspan=4)
 
         player_fighting_frame = tk.Frame(fighting_frame, parent)
@@ -421,16 +447,12 @@ class Game(tk.Frame):
         player_run_button.grid(row=2, column=1)
 
         enemy_fighting_frame = tk.Frame(fighting_frame, parent)
-        enemy_fighting_frame.grid(row=0, column=2, columnspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
+        enemy_fighting_frame.grid(row=0, column=2, columnspan=2)
 
-        def enemy_encounter():
-            enemy_encounter_label = tk.Message(enemy_fighting_frame, text=f"You`ve encountered a {random.choice(list_of_races[1])}")
-            enemy_encounter_label.grid(row=0, column=0)
-
-        lower_menu_frame = tk.Frame(self, parent, bg="Blue")
+        lower_menu_frame = tk.Frame(self, parent)
         lower_menu_frame.grid(row=2, column=0, sticky=tk.S)
         game_main_menu_button = ttk.Button(lower_menu_frame, text="Return to main Menu", command=lambda: controller.show_frame(Main_menu))
-        game_main_menu_button.grid(row=10, column=5)
+        game_main_menu_button.grid(row=0, column=0)
 
 
 game = RPGSE()
