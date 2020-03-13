@@ -5,9 +5,7 @@ from PIL import ImageTk, Image
 import sqlite3
 from sqlite3 import Error
 
-import time
-
-import math
+import sys
 
 import random
 
@@ -72,7 +70,8 @@ class Main_menu(tk.Frame):
         mm_statistics_button.pack()
         mm_options = ttk.Button(self, text="Options", command=lambda: controller.show_frame(Options))
         mm_options.pack()
-
+        mm_quit = ttk.Button(self, text="Quit", command=lambda: sys.exit())
+        mm_quit.pack()
         mm_test_game_btn = tk.Button(self, bg="red", text="START", command=lambda: controller.show_frame(Game))
         mm_test_game_btn.pack()
 
