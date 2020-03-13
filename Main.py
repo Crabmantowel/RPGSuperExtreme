@@ -5,6 +5,10 @@ from PIL import ImageTk, Image
 import sqlite3
 from sqlite3 import Error
 
+import time
+
+import math
+
 import random
 
 import matplotlib
@@ -400,12 +404,26 @@ class Game(tk.Frame):
                                     WHERE Race_name = '{current_player[9]}';""")
             return(sql_cursor.fetchall())
 
+        player_achieved_points = tk.IntVar()
+        player_achieved_points.set(0)
         current_player = fetch_player()
-        print(current_player)
+        player_moves_count = tk.IntVar()
+        player_moves_count.set(current_player[4] * 0.5)
         player_health = tk.IntVar()
         player_racial_buff = fetch_player_racial_buff()[0][0]
-        print(player_racial_buff)
         player_health.set(100 * current_player[4] + player_racial_buff)
+        player_damage = tk.IntVar()
+        player_damage.set(20 * current_player[2])
+        player_hit_chance = random.randint(1, 100) * current_player[3]
+        player_critical_hit_chance = random.randint(1, 100) * current_player[8]
+        player_block_chance = tk.IntVar()
+        player_block_on = tk.BooleanVar()
+        player_block_on.set(False)
+        print(f"""Player moves count = {player_moves_count.get()}\n
+                Player health_with buffs = {player_health.get()}\n
+                Player damage = {player_damage}\n
+                All other stats are:\n
+                {current_player}""")
 
         health_icon = ImageTk.PhotoImage(Image.open("Health.png"))
         player_health_displayed = tk.Label(name_health_bar_frame, font=("Arial", 14), textvariable=player_health, image=health_icon, compound=tk.BOTTOM)
@@ -431,9 +449,138 @@ class Game(tk.Frame):
         player_fighting_frame = tk.Frame(fighting_frame, parent)
         player_fighting_frame.grid(row=0, column=0, columnspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
 
-        def player_attack_action():
-            player_damage = 20 * current_player[2]
+        enemy_description = tk.StringVar()
+        enemy_damage = tk.IntVar()
 
+        def enemy_encounter():
+            global enemy
+            enemy = []
+            enemy.append(random.choice(list_of_races)[1])
+            enemy_debuff_points = current_player[5]
+            while enemy_debuff_points != 0:
+                for i in range(7):
+                    enemy.append(random.randint(1, 10) - 1)
+                enemy_debuff_points -= 1
+            enemy_hp = 100 * enemy[1]
+            enemy_damage.set(enemy[1] * 20)
+            enemy.append(enemy_hp)
+            if current_player[2] < 2:
+                enemy_description.set("Something attacked you")
+            else:
+                enemy_description.set(f"You`ve encountered {enemy[0]}")
+            if current_player[2] >= 9:
+                enemy_description.set(enemy_description.get() + f"\nit`s stats are: {enemy[1:-1]} it has {int(enemy[-1])} HP")
+            elif current_player[2] >= 7:
+                enemy_description.set(enemy_description.get() + f"\nit`s stats are: {enemy[1:4]} it has {enemy[-1]}:HP")
+            elif current_player[2] >= 5:
+                enemy_description.set(enemy_description.get() + f"\nit`s stats are: Strength-{enemy[1]}")
+            else:
+                pass
+            enemy_description.set(enemy_description.get() + f"\nYou`ve got {player_moves_count.get()} points for action")
+            enemy_encounter_label = tk.Label(enemy_fighting_frame, anchor=tk.N, width=40, font=MAIN_MENU_FONT, textvariable=enemy_description)
+            enemy_encounter_label.grid(row=0, column=0)
+
+        def player_attack_action():
+            if enemy[-1] <= 0:
+                player_achieved_points.set(player_achieved_points.get() + sum(enemy[1:-1]))
+                enemy_description.set(f"You`ve killed your enemy.\nNow your total points for the run are:\n{player_achieved_points.get()}")
+                player_moves_count.set(current_player[4] * 0.5)
+                self.after(1500, lambda: enemy_encounter())
+
+            else:
+                if player_moves_count.get() > 1:
+
+                    player_moves_count.set(player_moves_count.get() - 1)
+
+                    if player_critical_hit_chance >= 100:
+                        enemy_description.set(enemy_description.get() + "\nThats a Critical Hit!")
+                        current_damage = player_damage.get() * 2
+                    else:
+                        current_damage = player_damage.get()
+
+                    if player_hit_chance > 80:
+                        enemy[-1] -= current_damage
+                        enemy_description.set(f"You`ve bruttaly hit your enemy for {current_damage}dmg,\nNow it has {enemy[-1]} health\n{player_moves_count.get()} action points left")
+                    elif player_hit_chance > 50:
+                        enemy[-1] -= current_damage
+                        enemy_description.set(f"You`ve attacked enemy for {current_damage}dmg,\nNow it has {enemy[-1]} health\n{player_moves_count.get()} action points left")
+                    elif player_hit_chance > 30:
+                        enemy[-1] -= current_damage / 2
+                        enemy_description.set(f"You`ve sloppily hit enemy for {current_damage/2}dmg,\nNow it has {enemy[-1]} health\n{player_moves_count.get()} action points left")
+                    elif player_hit_chance > 10:
+                        enemy[-1] -= current_damage / 3
+                        enemy_description.set(f"You`ve almost missed the enemy, though you still got him {current_damage/3}dmg,\nNow it has {enemy[-1]} health\n{player_moves_count.get()} action points left")
+                    else:
+                        player_health.set(player_health.get() - current_damage)
+                        enemy_description.set(f"How did you managed to land a critical miss?!\nYou`ve hit yourself for {current_damage} \n{player_moves_count.get()} action points left")
+                    if enemy[-1] <= 0:
+                        player_achieved_points.set(player_achieved_points.get() + sum(enemy[1:-1]))
+                        enemy_description.set(f"You`ve killed your enemy.\nNow your total points for the run are:\n{player_achieved_points.get()}")
+                        player_moves_count.set(current_player[4] * 0.5)
+                        self.after(1500, lambda: enemy_encounter())
+                else:
+                    if enemy[-1] <= 0:
+                        pass
+                    else:
+                        enemy_attack()
+                        player_moves_count.set(current_player[4] * 0.5)
+
+        def player_defend_action():
+            player_block_on.set(True)
+            player_moves_count.set(player_moves_count.get() - 1)
+            if current_player[6] > enemy[7]:
+                player_block_chance.set(random.randint(1, 100) + (10 * (enemy[7] - current_player[6])))
+            else:
+                player_block_chance.set(random.randint(1, 100))
+            enemy_description.set(enemy_description.get() + "\nYou`r block is raised!")
+
+        def player_run_action():
+            if current_player[7] > enemy[8] or current_player[8] > enemy[9]:
+                enemy_description.set(f"You`ve succesfully ran away.\nfrom {enemy[0]}")
+                self.after(1500, lambda: enemy_encounter())
+            else:
+                run_calculated_damage = enemy_damage.get() * 2
+                player_health.set(player_health.get() - run_calculated_damage)
+                enemy_description.set(f"{enemy[0]} Got you!.\nyou loose {run_calculated_damage}:HP\nYou`ve got {player_moves_count.get()} points for action")
+            player_moves_count.set(1)
+
+        def enemy_attack():
+            if player_block_on.get() is True:
+
+                if player_block_chance.get() > 80:
+                    enemy_damage_but_blocked = (enemy_damage.get() / 100 * 20)
+                    player_health.set(player_health.get() - enemy_damage_but_blocked)
+                    enemy_description.set(f"You`ve blocked 80% of enemy damage\nEnemy attacked you for {enemy_damage_but_blocked}\nYour action points are restored now")
+                elif player_block_chance.get() > 60:
+                    enemy_damage_but_blocked = (enemy_damage.get() / 100 * 40)
+                    player_health.set(player_health.get() - enemy_damage_but_blocked)
+                    enemy_description.set(f"You`ve blocked 60% of enemy damage\nEnemy attacked you for {enemy_damage_but_blocked}\nYour action points are restored now")
+                else:
+                    enemy_damage_but_blocked = (enemy_damage.get() / 100 * 50)
+                    player_health.set(player_health.get() - enemy_damage_but_blocked)
+                    enemy_description.set(f"You`ve blocked 50% of enemy damage\nEnemy attacked you for {enemy_damage_but_blocked}\nYour action points are restored now")
+
+            else:
+                player_health.set(player_health.get() - enemy_damage.get())
+                enemy_description.set(f"{enemy[0]} attacked you for {enemy_damage.get()}dmg\nYour action points are restored now")
+            player_block_on.set(False)
+            if player_health.get() <= 0:
+                tk.messagebox.showinfo("RIP", f"GAME OVER\nFinal Score:{player_achieved_points.get()}")
+                try:
+                    sql_cursor.execute(f"""INSERT INTO Leaderboard(
+                                                        Name,
+                                                        Race_name,
+                                                        FinalPoints)
+                                                        VALUES(
+                                                        '{current_player[1]}',
+                                                        '{current_player[9]}',
+                                                        '{player_achieved_points.get()}'
+                                                        );""")
+                    sql_connector.commit()
+                    tk.messagebox.showinfo("Leaderboard", "Your Hero is saved in leaderboards\nand our hearts!")
+                except:
+                    tk.messagebox.showerror("Horrible malfunction", "Something went horribly wrong, our Gnomes are on it!")
+                self.after(500, lambda: controller.show_frame(Main_menu))
 
         sword_img = tk.PhotoImage(file="Attack.png")
         player_attack_label = tk.Label(player_fighting_frame, image=sword_img)
@@ -446,42 +593,18 @@ class Game(tk.Frame):
         player_defence_label = tk.Label(player_fighting_frame, image=shield_img)
         player_defence_label.image = shield_img
         player_defence_label.grid(row=1, column=0)
-        player_defence_button = tk.Button(player_fighting_frame, text="Defend")
+        player_defence_button = tk.Button(player_fighting_frame, text="Defend", command=lambda: player_defend_action())
         player_defence_button.grid(row=1, column=1)
 
         run_img = tk.PhotoImage(file="Run.png")
         player_run_label = tk.Label(player_fighting_frame, image=run_img)
         player_run_label.image = run_img
         player_run_label.grid(row=2, column=0)
-        player_run_button = tk.Button(player_fighting_frame, text="Run away")
+        player_run_button = tk.Button(player_fighting_frame, text="Run away", command=lambda: player_run_action())
         player_run_button.grid(row=2, column=1)
 
         enemy_fighting_frame = tk.Frame(fighting_frame, parent)
         enemy_fighting_frame.grid(row=0, column=2)
-
-        def enemy_encounter():
-            global enemy
-            enemy = []
-            enemy.append(random.choice(list_of_races)[1])
-            for i in range(7):
-                enemy.append(random.randint(1, 10))
-            enemy_hp = 100 * enemy[1]
-            enemy.append(enemy_hp)
-            if current_player[2] < 2:
-                enemy_description = "Something attacked you"
-            else:
-                enemy_description = f"You`ve encountered {enemy[0]}"
-
-            if current_player[2] >= 9:
-                enemy_description += f"\nit`s stats are: {enemy[1:-1]} it has {int(enemy[-1])} HP"
-            elif current_player[2] >= 7:
-                enemy_description += f"\nit`s stats are: {enemy[1:4]} it has {enemy[-1]}:HP"
-            elif current_player[2] >= 5:
-                enemy_description += f"\nit`s stats are: Strength-{enemy[1]}"
-            else:
-                pass
-            enemy_encounter_label = tk.Label(enemy_fighting_frame, anchor=tk.N, width=40, font=MAIN_MENU_FONT, text=enemy_description)
-            enemy_encounter_label.grid(row=0, column=0)
 
         enemy_encounter()
 

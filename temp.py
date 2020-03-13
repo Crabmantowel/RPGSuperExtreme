@@ -46,53 +46,53 @@
 # lb.pack()
 #
 # window.mainloop()
-
-
-from tkinter import Tk, BOTH, IntVar, LEFT
-from tkinter.ttk import Frame, Label, Scale, Style
-
-class Example(Frame):
-
-    def __init__(self):
-        super().__init__()
-
-        self.initUI()
-
-
-    def initUI(self):
-
-        self.master.title("Scale")
-        self.style = Style()
-        self.style.theme_use("default")
-
-        self.pack(fill=BOTH, expand=1)
-
-        scale = Scale(self, from_=0, to=100,
-            command=self.onScale)
-        scale.pack(side=LEFT, padx=15)
-
-        self.var = IntVar()
-        self.label = Label(self, text=0, textvariable=self.var)
-        self.label.pack(side=LEFT)
-
-
-    def onScale(self, val):
-
-        v = int(float(val))
-        self.var.set(v)
-
-
-def main():
-
-    root = Tk()
-    ex = Example()
-    root.geometry("250x100+300+300")
-    root.mainloop()
-
-
-if __name__ == '__main__':
-    main()
-
+#
+#
+# from tkinter import Tk, BOTH, IntVar, LEFT
+# from tkinter.ttk import Frame, Label, Scale, Style
+#
+# class Example(Frame):
+#
+#     def __init__(self):
+#         super().__init__()
+#
+#         self.initUI()
+#
+#
+#     def initUI(self):
+#
+#         self.master.title("Scale")
+#         self.style = Style()
+#         self.style.theme_use("default")
+#
+#         self.pack(fill=BOTH, expand=1)
+#
+#         scale = Scale(self, from_=0, to=100,
+#             command=self.onScale)
+#         scale.pack(side=LEFT, padx=15)
+#
+#         self.var = IntVar()
+#         self.label = Label(self, text=0, textvariable=self.var)
+#         self.label.pack(side=LEFT)
+#
+#
+#     def onScale(self, val):
+#
+#         v = int(float(val))
+#         self.var.set(v)
+#
+#
+# def main():
+#
+#     root = Tk()
+#     ex = Example()
+#     root.geometry("250x100+300+300")
+#     root.mainloop()
+#
+#
+# if __name__ == '__main__':
+#     main()
+#
 # from tkinter import *
 # master = Tk()
 # scales=list()
@@ -107,3 +107,40 @@ if __name__ == '__main__':
 # b=Button(master,text="Read",command=read_scales) # button to read values
 # b.pack(side=RIGHT)
 # mainloop()
+# import time
+#
+# def countdown(t):
+#     while t:
+#         mins, secs = divmod(t, 60)
+#         timeformat = '{:02d}:{:02d}'.format(mins, secs)
+#         print(timeformat, end='\r')
+#         time.sleep(1)
+#         t -= 1
+#     print('Goodbye!\n\n\n\n\n')
+#
+# countdown(5)
+
+import tkinter as tk
+
+class ExampleApp(tk.Tk):
+    def __init__(self):
+        tk.Tk.__init__(self)
+        self.label = tk.Label(self, text="", width=10)
+        self.label.pack()
+        self.remaining = 0
+        self.countdown(10)
+
+    def countdown(self, remaining = None):
+        if remaining is not None:
+            self.remaining = remaining
+
+        if self.remaining <= 0:
+            self.label.configure(text="time's up!")
+        else:
+            self.label.configure(text="%d" % self.remaining)
+            self.remaining = self.remaining - 1
+            self.after(1000, self.countdown)
+
+if __name__ == "__main__":
+    app = ExampleApp()
+    app.mainloop()
