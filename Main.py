@@ -28,11 +28,14 @@ class RPGSE(tk.Tk):
         """Initializing frame"""
 
         tk.Tk.__init__(self, *args, **kwargs)
+        global CURRENT_RESOLUTION
+        CURRENT_RESOLUTION = tk.StringVar()
+        CURRENT_RESOLUTION.set("800x600")
 
         tk.Tk.wm_title(self, "RPG Super Extreme")
         tk.Tk.iconbitmap(self, default="Skelly.ico")  # Don`t work with .bmp or .png formats
-        tk.Tk.geometry(self, "800x600")
-        #tk.Tk.resizable(self, width=False, height=False)
+        tk.Tk.geometry(self, CURRENT_RESOLUTION.get())
+        tk.Tk.resizable(self, width=False, height=False)
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -385,15 +388,12 @@ class Options(tk.Frame):
         window_resolution_option.current(1)
         window_resolution_option.grid(row=1, column=1)
 
-        def current_window_resolution(self):
-            global value_now
-            value_now = window_resolution_option.get()
-            print("Resolution is", value_now)
-            return value_now
+        def current_window_resolution():
+            CURRENT_RESOLUTION.set(str(window_resolution_option.get()))
+            print("Done?")
 
-        apply_resolution_button = ttk.Button(self, text=u"Apply")
+        apply_resolution_button = tk.Button(self, text=u"Apply", command=lambda: current_window_resolution())
         apply_resolution_button.grid(row=1, column=2)
-        apply_resolution_button.bind("<Button-1>", current_window_resolution)  # Why it must be only <Button-1>?!
 
         stat_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(Main_menu))
         stat_main_menu_button.grid(row=10, column=0, sticky="sew")
