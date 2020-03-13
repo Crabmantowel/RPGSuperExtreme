@@ -331,15 +331,34 @@ class Statistics(tk.Frame):
     ''''Shows player statistics with a graph'''
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = ttk.Label(self, text="Statistics: UNDER CONSTRUCTION", font=MAIN_MENU_FONT)
+        label = ttk.Label(self, text="Leaderboard", font=MAIN_MENU_FONT)
         label.pack(pady=10, padx=10)
+
+        try:
+            sql_connector = sqlite3.connect('RPGSE.db')
+            sql_cursor = sql_connector.cursor()
+        except Error as e:
+            print(e)
+
+        def fetch_all_leaders():
+            sql_cursor.execute("""SELECT Name, FinalPoints
+                                    FROM Leaderboard
+                                    ORDER BY FinalPoints
+                                    LIMIT 10""")
+            return dict(sql_cursor.fetchall())
 
         stat_main_menu_button = ttk.Button(self, text="Main Menu", command=lambda: controller.show_frame(Main_menu))
         stat_main_menu_button.pack()
 
         f = Figure(figsize=(5, 5), dpi=100)  # f stands for Figure
-        a = f.add_subplot(111)
-        a.plot([1, 2, 3, 4, 5, 6, 7, 8], [5, 1, 3, 6, 4, 7, 8, 9])  # first one is for x axis, second - y, x&y must correlate on the quantity of inputs
+        leaderboards = f.add_subplot(111)
+        leaders_dictionary = fetch_all_leaders()
+        names_list = []
+        values_list = []
+        for item in leaders_dictionary:
+            names_list.append(item)
+            values_list.append(leaders_dictionary[item])
+        leaderboards.plot(names_list, values_list)  # first one is for x axis, second - y, x&y must correlate on the quantity of inputs
 
         canvas = FigureCanvasTkAgg(f, self)
         canvas.draw()
